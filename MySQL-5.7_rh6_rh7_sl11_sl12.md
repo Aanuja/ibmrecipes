@@ -1,4 +1,4 @@
-MySQL can be built for Linux on z Systems running RHEL 6/7.1 and SLES 11/12 by following these instructions. Version 5.7.10 has been successfully built & tested this way.
+MySQL can be built for Linux on z Systems running RHEL 6/7.1 and SLES 12 by following these instructions. Version 5.7.11 has been successfully built & tested this way.
 More information on MySQL is available at https://www.mysql.com and the source code can be downloaded from https://github.com/mysql/mysql-server.git
 .
 
@@ -10,119 +10,120 @@ ii) _**Note:** A directory `/<source_root>/` will be referred to in these instru
 
 ## Building MySQL
 
-###Obtain pre-built dependencies and create `/<source_root>/` directory.
+###Obtain pre-built dependencies
 
-   1. Use the following commands to obtain dependencies :
+   1. Use the following commands to obtain dependencies
 
     For RHEL 6
     ```shell
     sudo yum install git gcc gcc-c++ make cmake bison ncurses-devel
     ```
+	
     For RHEL 7.1
     ```shell
     sudo yum install git gcc gcc-c++ make cmake bison ncurses-devel perl-Data-Dumper
     ```
-    For SLES 11 - (Additional support packages are needed to update cmake)
-    ```shell
-    sudo zypper install git gcc gcc-c++ make cmake bison ncurses-devel util-linux tar zip wget
-    ```
+	
     For SLES 12
     ```shell
-    sudo zypper install git gcc gcc-c++ make cmake bison ncurses-devel
+    sudo zypper install git gcc gcc-c++ make cmake bison ncurses-devel wget tar
     ```
-
-   1. Create the `/<source_root>/` directory mentioned above.
-
+	
+	For SLES 11 
     ```shell
-    mkdir /<source_root>/
+    sudo zypper install -y git gcc gcc-c++ make cmake bison ncurses-devel util-linux tar wget glibc-devel-32bit zlib-devel
     ```
+	
+   2. Dependency build - GCC 4.8.2 and cmake-3.3.0-rc2 (Only Required on SLES 11)
     
-###Dependency Build
-
-   _**Only Required on SLES 11**  - Update cmake to version 3.4.1 and GCC to version 6.0.0 by building from source._
-
-   1. _[Optional]_ Check the version of any existing `cmake` & `GCC` executable.
+   a) To install GCC, use the commands below.
     ```shell
-      which cmake
-      $(which cmake) --version
-    ```
-      _**Note:** A `cmake` at version 2.6.3 or later and `GCC` version 4.4 or later should be usable without upgrade.Later version of             `GCC` can be built from [these instructions](https://github.com/linux-on-ibm-z/docs/wiki/Building-gccgo)._
-     
-
-   1. Download the cmake source code, then extract it.
-      ```shell
-      cd /<source_root>/
-      wget --no-check-certificate http://www.cmake.org/files/v3.3/cmake-3.3.0-rc2.tar.gz
-      tar xzf cmake-3.3.0-rc2.tar.gz
-      ```
-
-   1. Bootstrap to configure the Makefile. Then Make and Install the utility.
-      ```shell
-      cd cmake-3.3.0-rc2
-      ./bootstrap --prefix=/usr
-      gmake
-      sudo gmake install
-      ```
-      _**Note:** To place `cmake` in the standard SLES location use `./bootstrap --prefix=/usr`._
-
-
-   1. Confirm the location and version of the upgraded `cmake`.
-      ```shell
-      which cmake
-      $(which cmake) --version
-      ```
-    
-   1. Confirm the version of GCC.
-      ```shell
-      gcc --version
-      ```
-   
-   DO NOT DO THIS STEP
-   Note: GCC might still point to the older version.Run the commands below to link it to the latest version.
-      ```shell
-      update-alternatives --install /usr/bin/gcc gcc /opt/gccgo/bin/gcc 50
-      update-alternatives --install /usr/bin/g++ g++ /opt/gccgo/bin/g++ 50
-      update-alternatives --install /usr/bin/cpp cpp /opt/gccgo/bin/cpp 50
-      update-alternatives --install /usr/bin/c++ c++ /opt/gccgo/bin/c++ 50
-      update-alternatives --install /usr/bin/cc cc /opt/gccgo/bin/gcc 50
-      export LD_LIBRARY_PATH=/opt/gccgo/lib64
-      ```
-   
+    wget http://ftp.gnu.org/gnu/gcc/gcc-4.8.2/gcc-4.8.2.tar.bz2
+	bunzip2  gcc-4.8.2.tar.bz2
+	tar xvf gcc-4.8.2.tar
+	cd gcc-4.8.2/
+	./contrib/download_prerequisites
+	mkdir build
+	cd build
+	../configure --disable-checking --enable-languages=c,c++ --enable-multiarch --enable-shared --enable-threads=posix --without-included-gettext --with-system-zlib --prefix=/opt/gcc4.8
+	make 
+	sudo make install 
+    ```   
+   b) Set following environment variable.
+    ```shell
+	export PATH=/opt/gcc4.8/bin:$PATH
+    export LD_LIBRARY_PATH=/opt/gcc4.8/lib64/
+    ```	
+ 
+   c) To install cmake, use the commands below.
+    ```shell
+	cd /<source_root>/
+    wget --no-check-certificate http://www.cmake.org/files/v3.3/cmake-3.3.0-rc2.tar.gz
+	tar xzf cmake-3.3.0-rc2.tar.gz
+	cd cmake-3.3.0-rc2
+	./bootstrap --prefix=/usr
+	gmake
+	sudo gmake install -e LD_LIBRARY_PATH=/opt/gcc4.8/lib64/
+    ```	
+	
 ###Product Build - MySQL.
 
-   1. Download the MySQL 5.7.10 source code from Github.
+   1. Download the MySQL 5.7.11 source code from Github.
     ```shell
     cd /<source_root>/
     git clone https://github.com/mysql/mysql-server.git
     ```
 
-   1. Move into the ` mysql-server` sub-directory, and checkout branch 5.7
+   2. Move into the ` mysql-server` sub-directory, and checkout branch 5.7
     ```shell
     cd mysql-server
     git branch
     git checkout 5.7
     ```
-    _**Note:** At the time of writing branch 5.7 returned minor version 5.7.10, - this minor version is subject to change._
+    _**Note:** At the time of writing branch 5.7 returned minor version 5.7.11, - this minor version is subject to change._
 
 
-   1. Configure and Build the MySQL Software.
+   3. Configure and Build the MySQL Software.
+   
+      For RHEL 6/7.1
     ```shell
     cmake . -DDOWNLOAD_BOOST=1 -DWITH_BOOST=.
     gmake
     ```
 
-   1. _[Optional]_ Check the make
+	  For SLES 11
+	  ```shell
+	wget http://sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.gz
+	tar xzf boost_1_59_0.tar.gz
+    cmake -DCMAKE_C_COMPILER=/opt/gcc4.8/bin/gcc -DCMAKE_CXX_COMPILER=/opt/gcc4.8/bin/g++ -DDOWNLOAD_BOOST=1 -DWITH_BOOST=.
+    gmake
+    ```
+	  
+	  For SLES 12
+	  ```shell
+	wget http://sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.gz
+	tar xzf boost_1_59_0.tar.gz
+    cmake . -DDOWNLOAD_BOOST=1 -DWITH_BOOST=.
+    gmake
+    ```
+   4. _[Optional]_ Check the make
 
     The testing should take only a few seconds. All 21 tests should PASS.
     ```shell
     gmake test
     ```
 
-   1. Install the Software into the standard location.
+   5. Install the Software into the standard location.
+   
+    For RHEL 6/7.1 & SLES 12
     ```shell
     sudo gmake install
     ```
-
+    For SLES 11
+	```shell
+    sudo gmake install -e LD_LIBRARY_PATH=/opt/gcc4.8/lib64/
+    ```
+	
 ###_[Optional]_ Post installation Setup and Testing.
 
    This guideline demonstrates a basic free-standing MySQL database, with a script for shutdown/restart as a System Service.
@@ -138,27 +139,32 @@ ii) _**Note:** A directory `/<source_root>/` will be referred to in these instru
    1. Initialize MySQL Data Directory.  (The `--user=mysql`, to match the MySQL Daemon (mysqld) userid).
     ```shell
     cd /usr/local/mysql
-    bin/mysqld --initialize --user=mysql
+    sudo bin/mysqld --initialize --user=mysql
     ```
 
    1. _[Optional]_ Start/Stop the mysqld daemon.
     ```shell
     cd /<source_root>/
     sudo /usr/local/mysql/bin/mysqld_safe --user=mysql &
-    /usr/local/mysql/bin/mysqladmin version
-    sudo /usr/local/mysql/bin/mysqladmin -u root shutdown
+    /usr/local/mysql/bin/mysqladmin --version
+    sudo /usr/local/mysql/bin/mysqladmin -u root -p shutdown
     ```
-     _**Note:** Performing a version check while the daemon is running confirms MySQL is operational._
+     _**Note:** i). Performing a version check while the daemon is running confirms MySQL is operational._
+	 
+	 _**Note:** ii). After starting the mysqld server, reset the root password using the mysql shell:
+					For example: `/usr/local/mysql/bin/mysql -A -u root -p`. The system will prompt `Enter password:` expecting the root password (temporary password generated when mysqld is initialised) in response.
+					To reset the password: `SET PASSWORD for 'root'@'localhost' = PASSWORD('newPassword');`._
 
    1. To start and stop server as an init.d Service
 
     This can be manually tested with a Start/Stop, but a system restart is needed for a full test.
     ```shell
     cd /usr/local/mysql
-    sudo  cp support-files/mysql.server /etc/init.d/mysql
-    sudo /etc/init.d/mysql start
-    /usr/local/mysql/bin/mysqlshow
-    sudo /etc/init.d/mysql stop
+    sudo cp support-files/mysql.server /etc/init.d/mysql
+	cd /etc/init.d
+    sudo ./mysql start
+    sudo /usr/local/mysql/bin/mysqlshow -p
+    sudo ./mysql stop
     ```
     _**Note:** i). Operation of bin/mysql commands requires, a running mysql server, and the `mysqlshow` executable is to show the existing databases._
 
