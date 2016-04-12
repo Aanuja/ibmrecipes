@@ -30,8 +30,12 @@
         $ git clone git://github.com/ibmsoe/Autoport.git
 
     Edit the **Autoport/config.ini** file to provide Jenkins URL.   To accomplish, this you
-    need to follow the instructions provided in the next section in this file pertaining to Jenkins Master
-    and then Jenkins build slaves.  Return HERE when these steps are done.
+    need to follow the instructions provided in the next section in this file pertaining to Jenkins Master.Return HERE when these steps are done.
+    Modify following fields in the **Autoport/config.ini** file:
+      [Jenkins Server]
+      jenkinsUrl: <jenkins_server_url>
+      jenkinsHostname: <jenkins_server_IP>
+      artifactsPathPrefix: /scratch/jenkins_server/.jenkins/jobs/ <path_of_jenkins_home_directory>
     
 There are several ways to run Autoport:
 
@@ -41,11 +45,10 @@ There are several ways to run Autoport:
        developers do.
 
             $ cd Autoport
-            $ nohup python main.py &
-            $ tail -f nohup.out
+            $ nohup python main.py -p
 
             To access Autoport, Local users paste this into their browser: 
-            http://127.0.0.1:5000/autoport
+            http://<vm_IP_addrs>:5000/autoport
             
 ### Steps to be carried out on Jenkins Master VM
 
@@ -88,5 +91,48 @@ There are several ways to run Autoport:
     mkdir /Jenkins
     cp /jenkins/war/target/jenkins.war /Jenkins
     
+    useradd -p $(openssl passwd -1 <password>) jenkins -s /bin/bash -m -d /home/jenkins
+    mkdir /home/jenkins/jenkins_home
+    
+    ### Edit **'/etc/default/jenkins'**
+    JENKINS_HOME=/home/jenkins/jenkins_home
+    
+    ### Add **jenkins** user to sudoers list with no password
+    jenkins ALL=(ALL:ALL) NOPASSWD: ALL
+    
+    cd /root/jenkins/.ssh
+    vi authorized_keys
+    cp jenkins.pub authorized_keys
+    
+    cd /home/jenkins/.ssh
+    vi authorized_keys
+    cp jenkins.pub authorized_keys
+    
     catalina.sh start && tail -f $CATALINA_HOME/logs/catalina.out
+    
+   3. SSH configuration :
+
+  * Copy ssh keys from Autoport sandbox to root and jenkins accounts on Jenkins master
+
+          $ cd Autoport
+          $ scp ./data/security/jenkins  root@<jenkins-master>:.ssh/
+          $ scp ./data/security/jenkins.pub  root@<jenkins-master>:.ssh/
+          $ scp ./data/security/jenkins  jenkins@<jenkins-master>:.ssh/
+          $ scp ./data/security/jenkins.pub jenkins@<jenkins-master>:.ssh/
+
+  * Ensure that appropriate permissions are set on .ssh folder
+
+          $ ssh root@<jenkins-master>
+          $ su jenkins
+          $ sudo chown -R jenkins:jenkins ~/.ssh
+          $ sudo chmod 700 ~/.ssh
+          $ sudo chmod 600 ~/.ssh/*
+          $ sudo restorecon -R -v ~/.ssh
+
+4. Jenkins server can be accessed at:
+
+   http://jenkins_master_hostname:8080
+    
+    
+   
     
