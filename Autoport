@@ -1,0 +1,92 @@
+## Setup Autoport Driver VM
+
+1. Install **pip**, the python package manager, to install python packages required by the Autoport driver
+
+    **On RHEL/Centos**:
+
+        $ sudo yum install python-pip
+        
+2. Install **python-devel** and **libevent-devel** if they are not already installed
+
+    **On RHEL/Centos**:
+
+        $ sudo yum install libevent-devel python-devel
+        
+3. Install python libraries using **pip**
+
+        $ sudo pip install Flask
+        $ sudo pip install PyGithub
+        $ sudo pip install requests
+        $ sudo pip install paramiko
+        $ sudo pip install threadpool
+        $ sudo pip install diff-match-patch
+        $ sudo pip install PyYaml
+        $ sudo pip install flask-compress
+        $ sudo pip install pytz
+        $ sudo pip install python-novaclient
+        
+4. Install and configure the Autoport source code and start Autoport
+
+        $ git clone git://github.com/ibmsoe/Autoport.git
+
+    Edit the **Autoport/config.ini** file to provide Jenkins URL.   To accomplish, this you
+    need to follow the instructions provided in the next section in this file pertaining to Jenkins Master
+    and then Jenkins build slaves.  Return HERE when these steps are done.
+    
+There are several ways to run Autoport:
+
+    1. Private development web service that is addressable locally only.  Each user needs to install and configure the
+       Autoport driver which is generally configured to use a shared jenkins cluster.  This provides the best
+       performance by far, but each user needs to locally configure and install Autoport.  This is what autoport
+       developers do.
+
+            $ cd Autoport
+            $ nohup python main.py &
+            $ tail -f nohup.out
+
+            To access Autoport, Local users paste this into their browser: 
+            http://127.0.0.1:5000/autoport
+            
+### Steps to be carried out on Jenkins Master VM
+
+    yum install -y wget git tar java-1.8.0-openjdk-devel.s390x
+    export JAVA_HOME /usr/lib/jvm/java-1.8.0
+    export PATH $PATH:$JAVA_HOME/bin
+    wget http://archive.apache.org/dist/ant/binaries/apache-ant-1.9.3-bin.tar.gz && tar zxf apache-ant-1.9.3-bin.tar.gz
+    export ANT_HOME /apache-ant-1.9.3
+    export PATH $PATH:$ANT_HOME/bin
+    
+    git clone https://git-wip-us.apache.org/repos/asf/maven.git/ --branch maven-3.2.5
+    mkdir -p /root/.m2/repository/org/codehaus/plexus/plexus-container-default/1.5.5
+    https://repo1.maven.org/maven2/org/codehaus/plexus/plexus-container-default/1.5.5/plexus-container-default-1.5.5.jar
+    mv plexus-container-default-1.5.5.jar /root/.m2/repository/org/codehaus/plexus/plexus-container-default/1.5.5
+    
+    cd maven
+    sed -i 's/timeout="600000"/timeout="2000000"/' build.xml
+    ant -Dmaven.home="/maven_build" -Dmaven.test.skip=true
+    
+    export M2_HOME /maven_build
+    PATH $PATH:$M2_HOME/bin
+    
+    git clone  https://github.com/apache/tomcat80.git
+    export CATALINA_HOME /tomcat80/output/build
+    export PATH $PATH:$CATALINA_HOME/bin
+    cd tomcat80
+    git checkout TOMCAT_8_0_23
+    cp build.properties.default build.properties
+    ant
+    
+    echo "test.excludePerformance=true" >> tomcat80/build.properties
+    sed -i 's/60000/6000000/' tomcat80/test/org/apache/tomcat/websocket/TesterFirehoseServer.java
+    sed  -i '$ i <role rolename="manager-gui"/> <user username="tomcat" password="tomcat" roles="manager-gui"/> ' $CATALINA_HOME/conf/tomcat-users.xml
+    
+    git clone -b stable-1.625 https://github.com/jenkinsci/jenkins.git
+    cd jenkins
+    mvn clean install -pl war -am -DskipTests
+    
+    cp /jenkins/war/target/jenkins.war $CATALINA_HOME/webapps/jenkins.war
+    mkdir /Jenkins
+    cp /jenkins/war/target/jenkins.war /Jenkins
+    
+    catalina.sh start && tail -f $CATALINA_HOME/logs/catalina.out
+    
