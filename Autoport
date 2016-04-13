@@ -134,5 +134,41 @@ There are several ways to run Autoport:
    http://jenkins_master_hostname:8080
     
     
-   
+### Jenkins Master First Time Configuration
+
+1. Click on `Manage Jenkins -> Configure System`. Set number of executors to 8.
+
+2. Click on `Manage Jenkins -> Manage Plugins`.
+   Update the installed plugins,and click restart jenkins button.
+
+3. After restart, install following plugins (Look on the available tab.
+   If you do not see it, there is a search option for plugins)
+      - Artifact Deployer Plugin
+      - Copy Artifact Plugin
+      - Compress build log Plugin
+      - Conditional-buildstep Plugin
+      - description setter plugin
+      - Git Client Plugin
+      - Git Plugin
+      - GitHub Plugin
+      - Github API Plugin
+      - Hudson Post build task
+      - Multijob plugin
+      - Node and Label parameter Plugin
+      - Parameterized Trigger Plugin
+      - Plot plugin
+      - Publish over SSH
+      - Rebuilder
+      - Run conditional Plugin
+      - SSH Agent Plugin
+      - Show Build Parameters Plugin
+      - Workflow: Step API
+      - Slave Setup Plugin
+      - Docker plugin
+      - Libvirt Slaves Plugin
+      - Environment Injector Plugin
+      - Build-timeout Plugin
+      - Pre-scm-buildstep Plugin
+      
+
     
