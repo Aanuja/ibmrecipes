@@ -171,4 +171,20 @@ There are several ways to run Autoport:
       - Pre-scm-buildstep Plugin
       
 
+### Chef Installation And Setup on Jenkins Master
+
+ yum install -y git ruby ruby-devel rubygems rubygem-bundler gcc make wget which tar
+ 
+wget http://cache.ruby-lang.org/pub/ruby/ruby-2.2.4.tar.gz
+tar zxf ruby-2.2.4.tar.gz
+cd ruby-2.2.4   
+./configure
+make
+make install
+
+ git clone https://github.com/chef/chef.git
+    cd chef
+    git checkout 12.7.2
+    
+    gem install bundler -v '1.7.3'
     
