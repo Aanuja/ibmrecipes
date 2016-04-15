@@ -35,8 +35,29 @@
       [Jenkins Server]
       jenkinsUrl: <jenkins_server_url>
       jenkinsHostname: <jenkins_server_IP>
-      artifactsPathPrefix: /scratch/jenkins_server/.jenkins/jobs/ <path_of_jenkins_home_directory>
+      artifactsPathPrefix: <jenkins_home_directory>
     
+    
+   3. SSH configuration :
+
+  * Copy ssh keys from Autoport sandbox to root and jenkins accounts on Jenkins master
+
+          $ cd Autoport
+          $ scp ./data/security/jenkins  root@<jenkins-master>:.ssh/
+          $ scp ./data/security/jenkins.pub  root@<jenkins-master>:.ssh/
+          $ scp ./data/security/jenkins  jenkins@<jenkins-master>:.ssh/
+          $ scp ./data/security/jenkins.pub jenkins@<jenkins-master>:.ssh/
+
+  * Ensure that appropriate permissions are set on .ssh folder
+
+          $ ssh root@<jenkins-master>
+          $ su jenkins
+          $ sudo chown -R jenkins:jenkins ~/.ssh
+          $ sudo chmod 700 ~/.ssh
+          $ sudo chmod 600 ~/.ssh/*
+          $ sudo restorecon -R -v ~/.ssh
+          
+          
 There are several ways to run Autoport:
 
     1. Private development web service that is addressable locally only.  Each user needs to install and configure the
@@ -59,6 +80,7 @@ There are several ways to run Autoport:
     export ANT_HOME /apache-ant-1.9.3
     export PATH $PATH:$ANT_HOME/bin
     
+    ******
     git clone https://git-wip-us.apache.org/repos/asf/maven.git/ --branch maven-3.2.5
     mkdir -p /root/.m2/repository/org/codehaus/plexus/plexus-container-default/1.5.5
     https://repo1.maven.org/maven2/org/codehaus/plexus/plexus-container-default/1.5.5/plexus-container-default-1.5.5.jar
@@ -67,8 +89,10 @@ There are several ways to run Autoport:
     cd maven
     sed -i 's/timeout="600000"/timeout="2000000"/' build.xml
     ant -Dmaven.home="/maven_build" -Dmaven.test.skip=true
+    *******
     
-    export M2_HOME /maven_build
+    wget http://mirror.fibergrid.in/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz & tar zxf apache-maven-3.3.9-bin.tar.gz
+    export M2_HOME /apache-maven-3.3.9
     PATH $PATH:$M2_HOME/bin
     
     git clone  https://github.com/apache/tomcat80.git
@@ -97,9 +121,11 @@ There are several ways to run Autoport:
     ### Edit **'/etc/default/jenkins'**
     JENKINS_HOME=/home/jenkins/jenkins_home
     
-    ### Add **jenkins** user to sudoers list with no password
+    ### Add **jenkins** user to sudoers list with no password "/etc/sudoers"
     jenkins ALL=(ALL:ALL) NOPASSWD: ALL
     
+    
+    *** to be doen after SSH configuration stesp ***
     cd /root/jenkins/.ssh
     vi authorized_keys
     cp jenkins.pub authorized_keys
@@ -108,27 +134,24 @@ There are several ways to run Autoport:
     vi authorized_keys
     cp jenkins.pub authorized_keys
     
-    catalina.sh start && tail -f $CATALINA_HOME/logs/catalina.out
+    *** modify the " ~./bashrc" with the below contents:
+    export ANT_HOME=/scratch/jenkins_server/apache-ant-1.9.3
+   export JAVA_HOME=/usr/lib/jvm/java-1.8.0
+   export M2_HOME=/scratch/jenkins_server/apache-maven-3.3.9
+   export CATALINA_HOME=/scratch/jenkins_server/tomcat80/output/build
+   export JENKINS_HOME=/scratch/jenkins_server/.jenkins
+   export PATH=$PATH:$JAVA_HOME/bin:$ANT_HOME/bin:$M2_HOME/bin:$CATALINA_HOME/bin
+   export JAVA_OPTS="-Dmail.smtp.starttls.enable=true"
+   export JAVA_ARGS="-Djava.awt.headless=true -XX:MaxPermSize=2048m"
     
-   3. SSH configuration :
-
-  * Copy ssh keys from Autoport sandbox to root and jenkins accounts on Jenkins master
-
-          $ cd Autoport
-          $ scp ./data/security/jenkins  root@<jenkins-master>:.ssh/
-          $ scp ./data/security/jenkins.pub  root@<jenkins-master>:.ssh/
-          $ scp ./data/security/jenkins  jenkins@<jenkins-master>:.ssh/
-          $ scp ./data/security/jenkins.pub jenkins@<jenkins-master>:.ssh/
-
-  * Ensure that appropriate permissions are set on .ssh folder
-
-          $ ssh root@<jenkins-master>
-          $ su jenkins
-          $ sudo chown -R jenkins:jenkins ~/.ssh
-          $ sudo chmod 700 ~/.ssh
-          $ sudo chmod 600 ~/.ssh/*
-          $ sudo restorecon -R -v ~/.ssh
-
+    *** modify the Tomat port (if required) from 8080 to any number.\ in file "/conf/server.xml"
+    cd $CATALINA_HOME/conf
+    vi server.xml
+    
+    *** start/stop the Tomcat server
+    catalina.sh start && tail -f $CATALINA_HOME/logs/catalina.out
+    catatlina.sh stop
+    
 4. Jenkins server can be accessed at:
 
    http://jenkins_master_hostname:8080
@@ -172,19 +195,7 @@ There are several ways to run Autoport:
       
 
 ### Chef Installation And Setup on Jenkins Master
-
- yum install -y git ruby ruby-devel rubygems rubygem-bundler gcc make wget which tar
- 
-wget http://cache.ruby-lang.org/pub/ruby/ruby-2.2.4.tar.gz
-tar zxf ruby-2.2.4.tar.gz
-cd ruby-2.2.4   
-./configure
-make
-make install
-
- git clone https://github.com/chef/chef.git
-    cd chef
-    git checkout 12.7.2
-    
-    gem install bundler -v '1.7.3'
+    rpm -ivh <chef-client rmp>
+    rpm -ivh <chef-server rmp>
+    chef-server-ctl reconfigure
     
