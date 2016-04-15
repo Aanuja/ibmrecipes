@@ -195,7 +195,7 @@ There are several ways to run Autoport:
       
 
 ### Chef Installation And Setup on Jenkins Master
-    rpm -ivh <chef-client rmp>
-    rpm -ivh <chef-server rmp>
+    rpm -ivh chef-12.5.1-1.el7.s390x.rpm
+    rpm -ivh chef-server-core-12.1.2+20151029120924-1.el7.s390x.rpm
     chef-server-ctl reconfigure
     
