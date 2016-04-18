@@ -103,17 +103,17 @@ There are several ways to run Autoport:
     cp build.properties.default build.properties
     ant
     
-    echo "test.excludePerformance=true" >> tomcat80/build.properties
-    sed -i 's/60000/6000000/' tomcat80/test/org/apache/tomcat/websocket/TesterFirehoseServer.java
+    echo "test.excludePerformance=true" >> build.properties
+    sed -i 's/60000/6000000/' test/org/apache/tomcat/websocket/TesterFirehoseServer.java
     sed  -i '$ i <role rolename="manager-gui"/> <user username="tomcat" password="tomcat" roles="manager-gui"/> ' $CATALINA_HOME/conf/tomcat-users.xml
     
     git clone -b stable-1.625 https://github.com/jenkinsci/jenkins.git
     cd jenkins
     mvn clean install -pl war -am -DskipTests
     
-    cp /jenkins/war/target/jenkins.war $CATALINA_HOME/webapps/jenkins.war
+    cp war/target/jenkins.war $CATALINA_HOME/webapps/jenkins.war
     mkdir /Jenkins
-    cp /jenkins/war/target/jenkins.war /Jenkins
+    cp war/target/jenkins.war /Jenkins
     
     useradd -p $(openssl passwd -1 <password>) jenkins -s /bin/bash -m -d /home/jenkins
     mkdir /home/jenkins/jenkins_home
@@ -125,7 +125,7 @@ There are several ways to run Autoport:
     jenkins ALL=(ALL:ALL) NOPASSWD: ALL
     
     
-    *** to be doen after SSH configuration stesp ***
+    *** to be done after SSH configuration step ***
     cd /root/jenkins/.ssh
     vi authorized_keys
     cp jenkins.pub authorized_keys
