@@ -126,7 +126,7 @@ There are several ways to run Autoport:
     
     
     *** to be done after SSH configuration step ***
-    cd /root/jenkins/.ssh
+    cd /root/.ssh
     vi authorized_keys
     cp jenkins.pub authorized_keys
     
