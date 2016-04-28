@@ -66,7 +66,7 @@ _ii) A directory `/<source_root>/` will be referred to in these instructions, th
 5. Install the required version of the bundler ruby gem
 
    ```
-   sudo gem install bundler -v '1.11.2'
+   sudo gem install bundler
    ```
 	
 6. Use bundler to install Chef Client's ruby gem dependencies
@@ -123,29 +123,8 @@ If you'd like to test the Chef client you've just built and installed, just foll
    #require 'rdoc/task'
    require_relative 'tasks/rspec'
    ```
-
-2. Notes on Verification Test Failures (not specific to Linux on z Systems)  
-   1. If test case "chef-client when the chef repo has a cookbook with a no-op recipe should complete successfully with no other environment variables" fails, edit the file
-
-   		``` vi ./spec/integration/client/client_spec.rb```  
-        
-        the following line of code
-        
-        ```let(:critical_env_vars) { %w(PATH RUBYOPT BUNDLE_GEMFILE GEM_PATH).map {|o| "#{o}=#{ENV[o]}"} .join(' ') }```
-        
-        can be changed to: 
-        	
-        For RHEL6/7 & SLES11
-		``` 
-		let(:critical_env_vars) { %w(PATH RUBYOPT BUNDLE_GEMFILE GEM_PATH GEM_HOME).map {|o| "#{o}=#{ENV[o]}"} .join(' ') }
-		```
-        
-        For SLES12
-		``` 
-		let(:critical_env_vars) { %w(PATH RUBYOPT BUNDLE_GEMFILE GEM_PATH GEM_HOME HOME).map {|o| "#{o}=#{ENV[o]}"} .join(' ') }
-		```
-		
-3. Visit https://github.com/chef/chef#testing for more   
+   
+2. Visit https://github.com/chef/chef#testing for more   
 
 ## References:
 
