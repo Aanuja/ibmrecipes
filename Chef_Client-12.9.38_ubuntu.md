@@ -33,7 +33,7 @@ _ii) A directory `/<source_root>/` will be referred to in these instructions, th
 	
 	For UBUNTU
 	```
-    sudo apt-get install -y git ruby ruby-dev gcc make zlib1g zlib1g-dev libssl-dev libreadline-dev libgdbm-dev wget
+    sudo apt-get install -y git ruby ruby-dev gcc make zlib1g zlib1g-dev libssl-dev libreadline-dev libgdbm-dev wget build-essential
     ```	
 	    
 2. For UBUNTU you will need Ruby 2.2.4
